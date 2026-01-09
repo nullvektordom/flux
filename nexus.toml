@@ -20,7 +20,7 @@ is_unlocked = false
 
 [state.active_sprint]
 current = "sprint-1"
-status = "in_progress"
+status = "approved"
 
 [templates]
 claude_template = "templates/CLAUDE.md.example"
