@@ -106,6 +106,7 @@ A local-first, privacy-focused Git CLI that uses local LLM (Qwen 14B via Ollama)
 - **LLM Interface:** Ollama HTTP API (local Qwen 14B)
 - **Error Handling:** anyhow (v1.0)
 - **Terminal UI:** colored (v2.1) + dialoguer (v0.11)
+- **REPL:** rustyline (v14.0) - readline implementation
 - **HTTP Client:** reqwest (v0.11)
 
 ### Key Dependencies
@@ -116,10 +117,11 @@ A local-first, privacy-focused Git CLI that uses local LLM (Qwen 14B via Ollama)
 4. `serde` + `toml` - Config serialization
 5. `colored` - Terminal colors
 6. `dialoguer` - Interactive prompts
-7. `reqwest` - Ollama API client
-8. `dirs` - Cross-platform config paths
-9. `chrono` - Timestamps
-10. `tempfile` + `assert_cmd` - Testing
+7. `rustyline` - REPL with history and line editing
+8. `reqwest` - Ollama API client
+9. `dirs` - Cross-platform config paths
+10. `chrono` - Timestamps
+11. `tempfile` + `assert_cmd` - Testing
 
 ## Architecture
 
@@ -209,6 +211,37 @@ Safety check result after LLM output.
 - `warnings` - Non-blocking issues
 - `sanitized_output` - Cleaned output
 
+#### ReplSession
+In-memory state for REPL mode.
+
+**Fields:**
+- `active_profile` - Currently loaded profile
+- `working_directory` - Current git repo path
+- `history_path` - Path to command history file
+- `prompt_format` - Customizable prompt template
+
+### REPL Implementation Details
+
+**Architecture:**
+- Uses `rustyline::Editor` for line editing and history
+- Command history persisted to `~/.config/flux/history.txt`
+- Supports Ctrl+C (cancel line), Ctrl+D (exit), arrow keys (navigation)
+- Tab completion for commands and profile names (future)
+- Prompt shows: `flux({profile_name})>`
+
+**Command Flow:**
+1. Parse input line without `flux` prefix
+2. Route to same command handlers as CLI mode
+3. Maintain session state between commands
+4. Handle special REPL commands: `exit`, `quit`, `help`, `clear`
+5. On error, return to prompt (don't exit REPL)
+
+**Benefits over CLI mode:**
+- No process startup overhead per command
+- State persistence (active profile stays loaded)
+- Better interactive experience for rapid operations
+- Command history across entire session
+
 ## User Workflows
 
 ### First-Time Setup
@@ -267,6 +300,33 @@ Available profiles:
 
 $ flux profile switch personal
 ✓ Switched to profile 'personal'
+```
+
+### REPL Mode
+
+```bash
+$ flux shell
+Welcome to Flux REPL! Type 'help' for commands, 'exit' to quit.
+
+flux(work)> profile list
+Available profiles:
+  * work (active)
+    personal
+    opensource
+
+flux(work)> profile switch personal
+✓ Switched to profile 'personal'
+
+flux(personal)> status
+Profile: personal
+Branch: main (protected)
+Working directory clean
+
+flux(personal)> commit
+No staged changes. Use 'git add' or 'flux commit -a' to stage changes.
+
+flux(personal)> exit
+Goodbye!
 ```
 
 ### Enhanced Status
@@ -351,35 +411,47 @@ Suggestion: Use 'git push' without --force, or push to a feature branch
 - Add profile validation
 - Write config tests
 
-### Sprint 2: Git Context + Safety (days 5-7)
+### Sprint 1.5: REPL Mode (days 4-6)
+- Implement basic REPL loop with `rustyline` crate
+- Add `flux shell` command to enter REPL mode
+- Support command parsing without `flux` prefix
+- Display active profile in prompt (e.g., `flux(work)>`)
+- Implement command history and arrow key navigation
+- Add REPL-specific commands: `exit`, `help`, `clear`
+- Maintain session state (active profile, working directory)
+- Write REPL integration tests with scripted input
+
+**Exit criteria:** Can enter REPL with `flux shell`, execute profile commands without prefix, see active profile in prompt, navigate command history, exit cleanly.
+
+### Sprint 2: Git Context + Safety (days 7-9)
 - Implement git operations
 - Create context gathering
 - Build validator with branch protection
 - Implement `flux status`
 - Add safety checks
 
-### Sprint 3: LLM Integration (days 8-11)
+### Sprint 3: LLM Integration (days 10-13)
 - Create Ollama HTTP client
 - Implement prompt builder
 - Add response parser
 - Write tests with mocked responses
 - Add graceful degradation
 
-### Sprint 4: Smart Commit (days 12-15)
+### Sprint 4: Smart Commit (days 14-17)
 - Implement `flux commit` with LLM
 - Add interactive confirmation
 - Integrate profile rules
 - Add `--all` and `--dry-run` flags
 - Execute commits with git2
 
-### Sprint 5: Nexus Integration (days 16-18)
+### Sprint 5: Nexus Integration (days 18-20)
 - Create project detection
 - Parse Nexus config
 - Read sprint metadata
 - Enhance LLM prompts
 - Add Nexus tests
 
-### Sprint 6: Polish & Testing (days 19-21)
+### Sprint 6: Polish & Testing (days 21-23)
 - Comprehensive integration tests
 - Improve error messages
 - Complete documentation
