@@ -2,6 +2,7 @@ mod config;
 mod commands;
 mod context;
 mod git;
+mod llm;
 mod validator;
 
 use clap::{Parser, Subcommand};
