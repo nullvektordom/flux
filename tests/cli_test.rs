@@ -56,3 +56,13 @@ fn test_flux_status_placeholder() {
         .success()
         .stdout(predicate::str::contains("not yet implemented"));
 }
+
+#[test]
+fn test_flux_shell_requires_config() {
+    let mut cmd = Command::cargo_bin("flux").unwrap();
+    cmd.arg("shell");
+    // Shell requires flux to be initialized
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
+}
