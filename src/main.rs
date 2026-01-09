@@ -1,5 +1,8 @@
 mod config;
 mod commands;
+mod context;
+mod git;
+mod validator;
 
 use clap::{Parser, Subcommand};
 
@@ -81,13 +84,13 @@ fn main() -> anyhow::Result<()> {
             println!("flux commit (all: {}, dry_run: {}) - not yet implemented", all, dry_run);
         }
         Some(Commands::Status) => {
-            println!("flux status - not yet implemented");
+            commands::status::run()?;
         }
         Some(Commands::Shell) => {
             commands::shell::run()?;
         }
         None => {
-            println!("Flux - AI-guided Git workflow assistant");
+            println!("flux - AI-guided Git workflow assistant");
             println!("Run 'flux --help' for usage information");
         }
     }

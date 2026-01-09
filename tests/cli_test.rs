@@ -49,12 +49,13 @@ fn test_flux_commit_placeholder() {
 }
 
 #[test]
-fn test_flux_status_placeholder() {
+fn test_flux_status_requires_init() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.arg("status");
+    // Status requires flux to be initialized
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
 }
 
 #[test]

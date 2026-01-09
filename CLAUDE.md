@@ -1,4 +1,4 @@
-# Flux - AI-Guided Git Workflow Assistant
+# flux - AI-Guided Git Workflow Assistant
 
 ## AI Assistant Persona
 
