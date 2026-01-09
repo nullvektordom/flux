@@ -1,3 +1,6 @@
+mod config;
+mod commands;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -64,14 +67,14 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Some(Commands::Init) => {
-            println!("flux init - not yet implemented");
+            commands::init::run()?;
         }
         Some(Commands::Profile { action }) => {
             match action {
-                ProfileAction::List => println!("flux profile list - not yet implemented"),
-                ProfileAction::Switch { name } => println!("flux profile switch {} - not yet implemented", name),
-                ProfileAction::Create => println!("flux profile create - not yet implemented"),
-                ProfileAction::Edit { name } => println!("flux profile edit {} - not yet implemented", name),
+                ProfileAction::List => commands::profile::list()?,
+                ProfileAction::Switch { name } => commands::profile::switch(name)?,
+                ProfileAction::Create => commands::profile::create()?,
+                ProfileAction::Edit { name } => commands::profile::edit(name)?,
             }
         }
         Some(Commands::Commit { all, dry_run }) => {
