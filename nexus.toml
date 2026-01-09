@@ -1,0 +1,27 @@
+[project]
+name = "flux"
+version = "0.1.0"
+obsidian_path = "/home/nullvektor/obsidian/projects/flux"
+
+[structure]
+planning_dir = "01-PLANNING"
+management_dir = "00-MANAGEMENT"
+sprint_dir = "00-MANAGEMENT/Sprints"
+
+[gate]
+heuristics_file = ".nexus/gate-heuristics.json"
+strict_mode = true
+
+[obsidian]
+planning_path = "/home/nullvektor/obsidian/projects/flux"
+
+[state]
+is_unlocked = false
+
+[templates]
+claude_template = "templates/CLAUDE.md.example"
+
+[llm]
+provider = "gemini"  # Default (high reasoning), or "claude"/"openrouter"
+model = "gemini-3-pro-preview"  # Default model
+enabled = true

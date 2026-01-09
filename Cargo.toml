@@ -1,0 +1,40 @@
+[package]
+name = "flux"
+version = "0.1.0"
+edition = "2021"
+authors = ["nullvektor"]
+description = "AI-guided Git workflow assistant with profile-aware guardrails"
+license = "MIT"
+repository = "https://github.com/nullvektor/flux"
+
+[dependencies]
+# CLI framework
+clap = { version = "4.5", features = ["derive"] }
+
+# Git operations
+git2 = "0.18"
+
+# Error handling
+anyhow = "1.0"
+
+# Config serialization
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+
+# Terminal UI
+colored = "2.1"
+dialoguer = "0.11"
+
+# HTTP client for Ollama
+reqwest = { version = "0.11", features = ["json", "blocking"] }
+
+# Cross-platform paths
+dirs = "5.0"
+
+# Optional dependencies
+chrono = "0.4"
+
+[dev-dependencies]
+tempfile = "3.10"
+assert_cmd = "2.0"
+predicates = "3.1"

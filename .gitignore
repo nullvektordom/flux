@@ -1,0 +1,14 @@
+# Nexus CLI
+.nexus_history.json
+.nexus_session.json
+.env
+.nexus/
+target/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
