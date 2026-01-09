@@ -78,7 +78,7 @@ impl Config {
 
         if !path.exists() {
             anyhow::bail!(
-                "Flux not initialized. Run 'flux init' to create your first profile.\nExpected config at: {}",
+                "flux not initialized. Run 'flux init' to create your first profile.\nExpected config at: {}",
                 path.display()
             );
         }

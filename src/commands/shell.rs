@@ -112,7 +112,7 @@ impl ReplSession {
                 println!("commit - not yet implemented");
             }
             "status" => {
-                println!("status - not yet implemented");
+                commands::status::run()?;
             }
             "shell" => {
                 println!("{} Already in shell mode", "Note:".yellow());
