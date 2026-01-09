@@ -84,7 +84,7 @@ fn main() -> anyhow::Result<()> {
             println!("flux status - not yet implemented");
         }
         Some(Commands::Shell) => {
-            println!("flux shell - not yet implemented");
+            commands::shell::run()?;
         }
         None => {
             println!("Flux - AI-guided Git workflow assistant");
