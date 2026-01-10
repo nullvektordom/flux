@@ -141,7 +141,7 @@ impl OllamaClient {
     }
 
     /// Send request to Ollama and get response
-    fn generate(&self, prompt: &str) -> Result<String> {
+    pub fn generate(&self, prompt: &str) -> Result<String> {
         let client = reqwest::blocking::Client::builder()
             .timeout(self.timeout)
             .build()
