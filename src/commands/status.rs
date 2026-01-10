@@ -33,6 +33,11 @@ pub fn run() -> Result<()> {
             // Repository path
             println!("{} {}", "Repository:".bold(), context.repo_path.display());
 
+            // Nexus context if available
+            if let Some(ref nexus) = context.nexus_context {
+                println!("{} {}", "Nexus:".bold().cyan(), nexus.format_summary());
+            }
+
             // Staged changes
             if !context.staged_files.is_empty() {
                 println!("\n{}", "Staged changes:".bold().green());

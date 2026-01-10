@@ -161,6 +161,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: false,
             has_uncommitted_changes: false,
+            nexus_context: None,
         };
 
         let result = Validator::validate_commit(&profile, &context).unwrap();
@@ -179,6 +180,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: false,
             has_uncommitted_changes: true,
+            nexus_context: None,
         };
 
         let result = Validator::validate_commit(&profile, &context).unwrap();
@@ -197,6 +199,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: true,
             has_uncommitted_changes: true,
+            nexus_context: None,
         };
 
         let result = Validator::validate_commit(&profile, &context).unwrap();
@@ -215,6 +218,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: true,
             has_uncommitted_changes: false,
+            nexus_context: None,
         };
 
         let result = Validator::validate_force_push(&profile, &context).unwrap();
@@ -233,6 +237,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: false,
             has_uncommitted_changes: false,
+            nexus_context: None,
         };
 
         let result = Validator::validate_force_push(&profile, &context).unwrap();

@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use crate::config::Profile;
 use crate::git::GitOps;
+use crate::nexus::NexusContext;
 
 /// Snapshot of current repository state
 #[derive(Debug, Clone)]
@@ -27,6 +28,9 @@ pub struct GitContext {
 
     /// Has any uncommitted changes
     pub has_uncommitted_changes: bool,
+
+    /// Optional Nexus project context
+    pub nexus_context: Option<NexusContext>,
 }
 
 impl GitContext {
@@ -44,6 +48,9 @@ impl GitContext {
         let is_protected_branch =
             GitOps::is_protected_branch(&current_branch, &profile.protected_branches);
 
+        // Attempt to detect Nexus project
+        let nexus_context = NexusContext::detect();
+
         Ok(GitContext {
             repo_path,
             current_branch,
@@ -52,6 +59,7 @@ impl GitContext {
             untracked_files,
             is_protected_branch,
             has_uncommitted_changes,
+            nexus_context,
         })
     }
 
@@ -99,6 +107,7 @@ mod tests {
             untracked_files: vec!["c.rs".to_string()],
             is_protected_branch: true,
             has_uncommitted_changes: true,
+            nexus_context: None,
         };
 
         assert_eq!(context.total_changes(), 3);

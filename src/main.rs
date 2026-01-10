@@ -3,6 +3,7 @@ mod commands;
 mod context;
 mod git;
 mod llm;
+mod nexus;
 mod validator;
 
 use clap::{Parser, Subcommand};
