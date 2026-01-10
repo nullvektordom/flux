@@ -31,6 +31,9 @@ reqwest = { version = "0.11", features = ["json", "blocking"] }
 # Cross-platform paths
 dirs = "5.0"
 
+# REPL with readline support
+rustyline = "14.0"
+
 # Optional dependencies
 chrono = "0.4"
 
@@ -38,3 +41,4 @@ chrono = "0.4"
 tempfile = "3.10"
 assert_cmd = "2.0"
 predicates = "3.1"
+serde_json = "1.0"

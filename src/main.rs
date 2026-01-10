@@ -1,3 +1,11 @@
+mod config;
+mod commands;
+mod context;
+mod git;
+mod llm;
+mod nexus;
+mod validator;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -64,27 +72,31 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Some(Commands::Init) => {
-            println!("flux init - not yet implemented");
+            commands::init::run()?;
         }
         Some(Commands::Profile { action }) => {
             match action {
-                ProfileAction::List => println!("flux profile list - not yet implemented"),
-                ProfileAction::Switch { name } => println!("flux profile switch {} - not yet implemented", name),
-                ProfileAction::Create => println!("flux profile create - not yet implemented"),
-                ProfileAction::Edit { name } => println!("flux profile edit {} - not yet implemented", name),
+                ProfileAction::List => commands::profile::list()?,
+                ProfileAction::Switch { name } => commands::profile::switch(name)?,
+                ProfileAction::Create => commands::profile::create()?,
+                ProfileAction::Edit { name } => commands::profile::edit(name)?,
             }
         }
         Some(Commands::Commit { all, dry_run }) => {
-            println!("flux commit (all: {}, dry_run: {}) - not yet implemented", all, dry_run);
+            let options = commands::commit::CommitOptions {
+                stage_all: all,
+                dry_run,
+            };
+            commands::commit::run(options)?;
         }
         Some(Commands::Status) => {
-            println!("flux status - not yet implemented");
+            commands::status::run()?;
         }
         Some(Commands::Shell) => {
-            println!("flux shell - not yet implemented");
+            commands::shell::run()?;
         }
         None => {
-            println!("Flux - AI-guided Git workflow assistant");
+            println!("flux - AI-guided Git workflow assistant");
             println!("Run 'flux --help' for usage information");
         }
     }

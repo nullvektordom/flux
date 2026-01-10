@@ -20,37 +20,51 @@ fn test_flux_version() {
 }
 
 #[test]
-fn test_flux_init_placeholder() {
+fn test_flux_init_requires_interaction() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.arg("init");
+    // Init command requires interactive input, so it will fail in non-interactive mode
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not a terminal"));
 }
 
 #[test]
-fn test_flux_profile_list_placeholder() {
+fn test_flux_profile_list_not_initialized() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.args(["profile", "list"]);
+    // Without initialization, should show error
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
 }
 
 #[test]
-fn test_flux_commit_placeholder() {
+fn test_flux_commit_requires_init() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.arg("commit");
+    // Commit requires flux to be initialized
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
 }
 
 #[test]
-fn test_flux_status_placeholder() {
+fn test_flux_status_requires_init() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.arg("status");
+    // Status requires flux to be initialized
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
+}
+
+#[test]
+fn test_flux_shell_requires_config() {
+    let mut cmd = Command::cargo_bin("flux").unwrap();
+    cmd.arg("shell");
+    // Shell requires flux to be initialized
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
 }

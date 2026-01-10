@@ -18,10 +18,14 @@ planning_path = "/home/nullvektor/obsidian/projects/flux"
 [state]
 is_unlocked = false
 
+[state.active_sprint]
+current = "sprint-5"
+status = "in_progress"
+
 [templates]
 claude_template = "templates/CLAUDE.md.example"
 
 [llm]
-provider = "gemini"  # Default (high reasoning), or "claude"/"openrouter"
-model = "gemini-3-pro-preview"  # Default model
+provider = "gemini"
+model = "gemini-3-pro-preview"
 enabled = true
