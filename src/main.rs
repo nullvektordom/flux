@@ -4,7 +4,9 @@ mod context;
 mod git;
 mod llm;
 mod nexus;
+mod pr;
 mod validator;
+mod workflow;
 
 use clap::{Parser, Subcommand};
 
@@ -42,8 +44,46 @@ enum Commands {
     /// Show enhanced git status with profile info
     Status,
 
+    /// Workflow orchestration (branch creation, merge, etc.)
+    Flow {
+        #[command(subcommand)]
+        action: FlowAction,
+    },
+
+    /// Pull request automation
+    Pr {
+        #[command(subcommand)]
+        action: PrAction,
+    },
+
     /// Interactive shell (REPL mode)
     Shell,
+}
+
+#[derive(Subcommand)]
+enum FlowAction {
+    /// Start a new workflow and create branch
+    Start {
+        /// Branch name (e.g., 'auth' or 'feature/auth')
+        name: Option<String>,
+
+        /// Preview without creating branch
+        #[arg(short = 'n', long)]
+        dry_run: bool,
+    },
+
+    /// Finish workflow (commit, merge, cleanup)
+    Finish {
+        /// Preview without executing
+        #[arg(short = 'n', long)]
+        dry_run: bool,
+    },
+
+    /// Abort workflow and return to original branch
+    Abort,
+
+    /// Show current workflow status
+    Status,
 }
 
 #[derive(Subcommand)]
@@ -64,6 +104,31 @@ enum ProfileAction {
     Edit {
         /// Profile name to edit
         name: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum PrAction {
+    /// Create PR from current branch
+    Create {
+        /// Create as draft PR
+        #[arg(short, long)]
+        draft: bool,
+
+        /// Target branch (defaults to profile default_branch)
+        #[arg(short, long)]
+        base: Option<String>,
+
+        /// Preview only, don't create PR
+        #[arg(short = 'n', long)]
+        preview: bool,
+    },
+
+    /// Preview PR without creating
+    Preview {
+        /// Target branch (defaults to profile default_branch)
+        #[arg(short, long)]
+        base: Option<String>,
     },
 }
 
@@ -91,6 +156,34 @@ fn main() -> anyhow::Result<()> {
         }
         Some(Commands::Status) => {
             commands::status::run()?;
+        }
+        Some(Commands::Flow { action }) => {
+            match action {
+                FlowAction::Start { name, dry_run } => commands::flow::start(name, dry_run)?,
+                FlowAction::Finish { dry_run } => commands::flow::finish(dry_run)?,
+                FlowAction::Abort => commands::flow::abort()?,
+                FlowAction::Status => commands::flow::status()?,
+            }
+        }
+        Some(Commands::Pr { action }) => {
+            match action {
+                PrAction::Create { draft, base, preview } => {
+                    let options = commands::pr::PrOptions {
+                        draft,
+                        base,
+                        preview_only: preview,
+                    };
+                    commands::pr::create(options)?;
+                }
+                PrAction::Preview { base } => {
+                    let options = commands::pr::PrOptions {
+                        draft: false,
+                        base,
+                        preview_only: true,
+                    };
+                    commands::pr::create(options)?;
+                }
+            }
         }
         Some(Commands::Shell) => {
             commands::shell::run()?;

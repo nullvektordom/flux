@@ -127,6 +127,12 @@ impl ReplSession {
             "status" => {
                 commands::status::run()?;
             }
+            "flow" => {
+                self.handle_flow_command(&parts[1..])?;
+            }
+            "pr" => {
+                self.handle_pr_command(&parts[1..])?;
+            }
             "shell" => {
                 println!("{} Already in shell mode", "Note:".yellow());
             }
@@ -177,6 +183,137 @@ impl ReplSession {
         Ok(())
     }
 
+    fn handle_flow_command(&mut self, args: &[&str]) -> Result<()> {
+        if args.is_empty() {
+            eprintln!("Usage: flow <start|finish|abort|status>");
+            return Ok(());
+        }
+
+        match args[0] {
+            "start" => {
+                let mut name = None;
+                let mut dry_run = false;
+
+                // Parse arguments
+                let mut i = 1;
+                while i < args.len() {
+                    match args[i] {
+                        "--dry-run" | "-n" => dry_run = true,
+                        arg => {
+                            if name.is_none() {
+                                name = Some(arg.to_string());
+                            } else {
+                                eprintln!("{} Unknown argument: {}", "Warning:".yellow(), arg);
+                            }
+                        }
+                    }
+                    i += 1;
+                }
+
+                commands::flow::start(name, dry_run)?;
+            }
+            "finish" => {
+                let mut dry_run = false;
+
+                // Parse flags
+                for arg in &args[1..] {
+                    match *arg {
+                        "--dry-run" | "-n" => dry_run = true,
+                        _ => eprintln!("{} Unknown flag: {}", "Warning:".yellow(), arg),
+                    }
+                }
+
+                commands::flow::finish(dry_run)?;
+            }
+            "abort" => {
+                commands::flow::abort()?;
+            }
+            "status" => {
+                commands::flow::status()?;
+            }
+            subcmd => {
+                eprintln!("{} Unknown flow subcommand: '{}'", "Error:".red(), subcmd);
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_pr_command(&mut self, args: &[&str]) -> Result<()> {
+        if args.is_empty() {
+            eprintln!("Usage: pr <create|preview>");
+            return Ok(());
+        }
+
+        match args[0] {
+            "create" => {
+                let mut draft = false;
+                let mut base = None;
+                let mut preview = false;
+
+                // Parse arguments
+                let mut i = 1;
+                while i < args.len() {
+                    match args[i] {
+                        "--draft" | "-d" => draft = true,
+                        "--preview" | "-n" => preview = true,
+                        "--base" | "-b" => {
+                            if i + 1 < args.len() {
+                                base = Some(args[i + 1].to_string());
+                                i += 1;
+                            } else {
+                                eprintln!("{} --base requires a branch name", "Error:".red());
+                                return Ok(());
+                            }
+                        }
+                        arg => eprintln!("{} Unknown argument: {}", "Warning:".yellow(), arg),
+                    }
+                    i += 1;
+                }
+
+                let options = commands::pr::PrOptions {
+                    draft,
+                    base,
+                    preview_only: preview,
+                };
+                commands::pr::create(options)?;
+            }
+            "preview" => {
+                let mut base = None;
+
+                // Parse arguments
+                let mut i = 1;
+                while i < args.len() {
+                    match args[i] {
+                        "--base" | "-b" => {
+                            if i + 1 < args.len() {
+                                base = Some(args[i + 1].to_string());
+                                i += 1;
+                            } else {
+                                eprintln!("{} --base requires a branch name", "Error:".red());
+                                return Ok(());
+                            }
+                        }
+                        arg => eprintln!("{} Unknown argument: {}", "Warning:".yellow(), arg),
+                    }
+                    i += 1;
+                }
+
+                let options = commands::pr::PrOptions {
+                    draft: false,
+                    base,
+                    preview_only: true,
+                };
+                commands::pr::create(options)?;
+            }
+            subcmd => {
+                eprintln!("{} Unknown pr subcommand: '{}'", "Error:".red(), subcmd);
+            }
+        }
+
+        Ok(())
+    }
+
     fn show_help(&self) {
         println!("{}", "Available commands:".bold());
         println!("  {}          Initialize Flux and create first profile", "init".cyan());
@@ -187,6 +324,14 @@ impl ReplSession {
         println!("    {} {} <name>   View profile details", "profile".cyan(), "edit".cyan());
         println!("  {}        Smart commit with AI", "commit".cyan());
         println!("  {}        Show enhanced git status", "status".cyan());
+        println!("  {}          Workflow orchestration", "flow".cyan());
+        println!("    {} {}       Start new workflow", "flow".cyan(), "start".cyan());
+        println!("    {} {}      Finish workflow", "flow".cyan(), "finish".cyan());
+        println!("    {} {}       Abort workflow", "flow".cyan(), "abort".cyan());
+        println!("    {} {}      Show workflow status", "flow".cyan(), "status".cyan());
+        println!("  {}            Pull request automation", "pr".cyan());
+        println!("    {} {}      Create PR", "pr".cyan(), "create".cyan());
+        println!("    {} {}     Preview PR", "pr".cyan(), "preview".cyan());
         println!();
         println!("{}", "Special commands:".bold());
         println!("  {}          Show this help message", "help".cyan());
