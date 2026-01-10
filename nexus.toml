@@ -19,8 +19,8 @@ planning_path = "/home/nullvektor/obsidian/projects/flux"
 is_unlocked = false
 
 [state.active_sprint]
-current = "sprint-4"
-status = "approved"
+current = "sprint-5"
+status = "in_progress"
 
 [templates]
 claude_template = "templates/CLAUDE.md.example"

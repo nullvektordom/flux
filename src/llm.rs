@@ -107,6 +107,15 @@ impl OllamaClient {
             prompt.push_str("\n");
         }
 
+        // Add Nexus context if available
+        if let Some(ref nexus) = request.git_context.nexus_context {
+            prompt.push_str(&format!("Project context: {}\n", nexus.format_summary()));
+            if !nexus.is_adhoc_mode {
+                prompt.push_str(&format!("Suggested scope: {}\n", nexus.scope_prefix()));
+            }
+            prompt.push_str("\n");
+        }
+
         // Add git context
         prompt.push_str("Staged files:\n");
         for file in &request.git_context.staged_files {
@@ -209,6 +218,7 @@ mod tests {
             untracked_files: vec![],
             is_protected_branch: false,
             has_uncommitted_changes: true,
+            nexus_context: None,
         }
     }
 
