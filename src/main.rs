@@ -5,6 +5,7 @@ mod git;
 mod llm;
 mod nexus;
 mod validator;
+mod workflow;
 
 use clap::{Parser, Subcommand};
 

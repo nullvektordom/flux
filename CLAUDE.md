@@ -112,17 +112,17 @@ flux/src/
 **3 (days 10-13):** Ollama client, prompt builder, response parser, mocked tests, fallback
 **4 (days 14-17):** flux commit with LLM, confirmation, profile rules, --all/--dry-run flags
 **5 (days 18-20):** Nexus detection, config parse, sprint metadata, enhance prompts
-**6 (days 21-23):** Integration tests, error messages, docs, real-world testing
+**8 (days 21-23):** Integration tests, error messages, docs, real-world testing
 
 **DoD:** Builds, tests pass, manual testing, conventional commit, retrospective, no regressions
 
 ## Version 2 Sprints
 
-**7 (days 24-28):** Workflow orchestration - `flux flow` command, branch creation from task, auto-commit workflow, merge strategies, tag generation, profile-based flow templates, dry-run mode, rollback on failure
+**6 (days 24-28):** Workflow orchestration - `flux flow` command, branch creation from task, auto-commit workflow, merge strategies, tag generation, profile-based flow templates, dry-run mode, rollback on failure
 
-**8 (days 29-33):** PR automation - `flux pr` command, commit history analysis, LLM-generated PR title/body, changeset summarization, GitHub/GitLab API integration, link to Nexus tasks, template support, draft PR mode
+**7 (days 29-33):** PR automation - `flux pr` command, commit history analysis, LLM-generated PR title/body, changeset summarization, GitHub/GitLab API integration, link to Nexus tasks, template support, draft PR mode
 
-### Sprint 7: Workflow Orchestration (days 24-28)
+### Sprint 6: Workflow Orchestration (days 24-28)
 
 **Goal:** Automate complete feature branch workflow from creation to merge/tag
 
@@ -158,7 +158,7 @@ flux/src/
 - `flux flow status` - Show current workflow state and next steps
 - `flux flow templates` - List available workflow templates
 
-### Sprint 8: PR Generation (days 29-33)
+### Sprint 7: PR Generation (days 29-33)
 
 **Goal:** Generate pull requests with AI-analyzed commit history and changeset summaries
 
