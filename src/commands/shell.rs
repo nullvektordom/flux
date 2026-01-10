@@ -109,7 +109,20 @@ impl ReplSession {
                 self.handle_profile_command(&parts[1..])?;
             }
             "commit" => {
-                println!("commit - not yet implemented");
+                let mut stage_all = false;
+                let mut dry_run = false;
+
+                // Parse flags
+                for arg in &parts[1..] {
+                    match *arg {
+                        "--all" | "-a" => stage_all = true,
+                        "--dry-run" | "-n" => dry_run = true,
+                        _ => eprintln!("{} Unknown flag: {}", "Warning:".yellow(), arg),
+                    }
+                }
+
+                let options = commands::commit::CommitOptions { stage_all, dry_run };
+                commands::commit::run(options)?;
             }
             "status" => {
                 commands::status::run()?;
