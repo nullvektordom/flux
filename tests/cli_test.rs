@@ -40,12 +40,13 @@ fn test_flux_profile_list_not_initialized() {
 }
 
 #[test]
-fn test_flux_commit_placeholder() {
+fn test_flux_commit_requires_init() {
     let mut cmd = Command::cargo_bin("flux").unwrap();
     cmd.arg("commit");
+    // Commit requires flux to be initialized
     cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("not yet implemented"));
+        .failure()
+        .stderr(predicate::str::contains("not initialized"));
 }
 
 #[test]

@@ -82,7 +82,11 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Some(Commands::Commit { all, dry_run }) => {
-            println!("flux commit (all: {}, dry_run: {}) - not yet implemented", all, dry_run);
+            let options = commands::commit::CommitOptions {
+                stage_all: all,
+                dry_run,
+            };
+            commands::commit::run(options)?;
         }
         Some(Commands::Status) => {
             commands::status::run()?;
