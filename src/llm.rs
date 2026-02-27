@@ -5,9 +5,9 @@ use std::time::Duration;
 use crate::config::Profile;
 use crate::context::GitContext;
 
-const OLLAMA_URL: &str = "http://localhost:11434/api/generate";
-const OLLAMA_MODEL: &str = "qwen2.5-coder:14b";
-const TIMEOUT_SECS: u64 = 5;
+const ANTHROPIC_URL: &str = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_MODEL: &str = "claude-3-haiku-20240307";
+const TIMEOUT_SECS: u64 = 10;
 
 /// Request to LLM for generating content
 #[derive(Debug, Clone)]
@@ -35,59 +35,43 @@ impl OperationType {
     }
 }
 
-/// Ollama API request structure
+/// Anthropic Claude Haiku API request structure
 #[derive(Debug, Serialize)]
-struct OllamaRequest {
+struct AnthropicRequest {
     model: String,
-    prompt: String,
-    stream: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    options: Option<OllamaOptions>,
+    max_tokens: u32,
+    messages: Vec<AnthropicMessage>,
 }
 
 #[derive(Debug, Serialize)]
-struct OllamaOptions {
-    temperature: f32,
+struct AnthropicMessage {
+    role: String,
+    content: String,
 }
 
-/// Ollama API response structure
-#[derive(Debug, Deserialize)]
-struct OllamaResponse {
-    response: String,
-    done: bool,
-}
-
-/// LLM client for Ollama
-pub struct OllamaClient {
+/// LLM client for Anthropic Claude
+pub struct AnthropicClient {
     base_url: String,
     model: String,
     timeout: Duration,
+    api_key: String,
 }
 
-impl OllamaClient {
+impl AnthropicClient {
     pub fn new() -> Self {
+        let api_key = std::env::var("ANTHROPIC_API_KEY")
+            .expect("ANTHROPIC_API_KEY environment variable not set");
         Self {
-            base_url: OLLAMA_URL.to_string(),
-            model: OLLAMA_MODEL.to_string(),
+            base_url: ANTHROPIC_URL.to_string(),
+            model: ANTHROPIC_MODEL.to_string(),
             timeout: Duration::from_secs(TIMEOUT_SECS),
+            api_key,
         }
-    }
-
-    /// Check if Ollama is available
-    pub fn is_available(&self) -> bool {
-        let client = reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(2))
-            .build()
-            .unwrap_or_else(|_| reqwest::blocking::Client::new());
-
-        let version_url = self.base_url.replace("/api/generate", "/api/version");
-        client.get(&version_url).send().is_ok()
     }
 
     /// Generate commit message from context
     pub fn generate_commit_message(&self, request: &LLMRequest) -> Result<String> {
         let prompt = self.build_commit_prompt(request);
-
         self.generate(&prompt)
             .context("Failed to generate commit message from LLM")
     }
@@ -95,10 +79,7 @@ impl OllamaClient {
     /// Build prompt for commit message generation
     fn build_commit_prompt(&self, request: &LLMRequest) -> String {
         let mut prompt = String::new();
-
         prompt.push_str("You are a git commit message generator. Generate a conventional commit message.\n\n");
-
-        // Add profile rules if any
         if !request.profile.rules.is_empty() {
             prompt.push_str("Workflow rules:\n");
             for rule in &request.profile.rules {
@@ -106,8 +87,6 @@ impl OllamaClient {
             }
             prompt.push_str("\n");
         }
-
-        // Add Nexus context if available
         if let Some(ref nexus) = request.git_context.nexus_context {
             prompt.push_str(&format!("Project context: {}\n", nexus.format_summary()));
             if !nexus.is_adhoc_mode {
@@ -115,73 +94,64 @@ impl OllamaClient {
             }
             prompt.push_str("\n");
         }
-
-        // Add git context
         prompt.push_str("Staged files:\n");
         for file in &request.git_context.staged_files {
             prompt.push_str(&format!("- {}\n", file));
         }
         prompt.push_str("\n");
-
-        // Add conventional commit format requirement
         if request.profile.conventional_commits {
             prompt.push_str("Use conventional commit format: <type>(<scope>): <description>\n");
             prompt.push_str("Types: feat, fix, docs, style, refactor, test, chore\n\n");
         }
-
-        // Add user prompt if provided
         if let Some(ref user_prompt) = request.user_prompt {
             prompt.push_str(&format!("Additional context: {}\n\n", user_prompt));
         }
-
         prompt.push_str("Generate ONLY the commit message, without quotes or extra explanation. ");
         prompt.push_str("Use a concise subject line (50 chars max), then blank line, then bullet points for details if needed.");
-
         prompt
     }
 
-    /// Send request to Ollama and get response
+    /// Send request to Anthropic Claude and get response
     pub fn generate(&self, prompt: &str) -> Result<String> {
         let client = reqwest::blocking::Client::builder()
             .timeout(self.timeout)
             .build()
             .context("Failed to build HTTP client")?;
 
-        let request_body = OllamaRequest {
+        let request_body = AnthropicRequest {
             model: self.model.clone(),
-            prompt: prompt.to_string(),
-            stream: false,
-            options: Some(OllamaOptions { temperature: 0.0 }),
+            max_tokens: 128,
+            messages: vec![AnthropicMessage {
+                role: "user".to_string(),
+                content: prompt.to_string(),
+            }],
         };
 
         let response = client
             .post(&self.base_url)
+            .header("x-api-key", &self.api_key)
+            .header("anthropic-version", "2023-06-01")
             .json(&request_body)
             .send()
-            .context("Failed to connect to Ollama. Is it running?")?;
+            .context("Failed to connect to Anthropic API")?;
 
         if !response.status().is_success() {
             anyhow::bail!(
-                "Ollama returned error status: {}",
+                "Anthropic API returned error status: {}",
                 response.status()
             );
         }
 
-        let ollama_response: OllamaResponse = response
-            .json()
-            .context("Failed to parse Ollama response")?;
-
-        let message = ollama_response.response.trim().to_string();
-
-        if message.is_empty() {
-            anyhow::bail!("Ollama returned empty response");
+        let json: serde_json::Value = response.json().context("Failed to parse Anthropic response")?;
+        let content = json["content"][0]["text"].as_str().unwrap_or("").trim().to_string();
+        if content.is_empty() {
+            anyhow::bail!("Anthropic API returned empty response");
         }
-
-        Ok(message)
+        Ok(content)
     }
 }
 
-impl Default for OllamaClient {
+impl Default for AnthropicClient {
     fn default() -> Self {
         Self::new()
     }
@@ -224,7 +194,7 @@ mod tests {
 
     #[test]
     fn test_build_commit_prompt() {
-        let client = OllamaClient::new();
+        let client = AnthropicClient::new();
         let profile = create_test_profile();
         let context = create_test_context();
 
@@ -245,10 +215,11 @@ mod tests {
     }
 
     #[test]
-    fn test_ollama_client_creation() {
-        let client = OllamaClient::new();
-        assert_eq!(client.model, OLLAMA_MODEL);
-        assert_eq!(client.base_url, OLLAMA_URL);
+    fn test_anthropic_client_creation() {
+        std::env::set_var("ANTHROPIC_API_KEY", "dummy");
+        let client = AnthropicClient::new();
+        assert_eq!(client.model, ANTHROPIC_MODEL);
+        assert_eq!(client.base_url, ANTHROPIC_URL);
     }
 
     #[test]
